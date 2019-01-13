@@ -184,6 +184,7 @@ class MenuContents: UIView {
         }
         
         stackView = UIStackView(arrangedSubviews: itemViews)
+        imageView.contentMode = .scaleAspectFit
         
         self.maxHeight = maxHeight
         self.items = items
