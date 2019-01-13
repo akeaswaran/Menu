@@ -46,7 +46,7 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
     private var longPress: UILongPressGestureRecognizer!
     private var tapGesture: UITapGestureRecognizer!
     
-    private let itemsSource: () -> [MenuItem]
+    public var itemsSource: (() -> [MenuItem])?
     
     public enum Alignment {
         case left
@@ -64,7 +64,7 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
         }
     }
     
-    public init(title: Title, theme: MenuTheme, itemsSource: @escaping () -> [MenuItem]) {
+    public init(title: Title, theme: MenuTheme, itemsSource: (() -> [MenuItem])? = nil) {
         self.itemsSource = itemsSource
         self.title = title
         self.theme = theme
@@ -244,7 +244,7 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
     public func showContents() {
         NotificationCenter.default.post(name: MenuView.menuWillPresent, object: self)
         
-        let contents = MenuContents(title: title, items: itemsSource(), theme: theme)
+        let contents = MenuContents(title: title, items: itemsSource?() ?? [], theme: theme)
         
         for view in contents.stackView.arrangedSubviews {
             if let view = view as? MenuItemView {
