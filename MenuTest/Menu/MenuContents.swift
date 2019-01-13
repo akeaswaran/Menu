@@ -31,6 +31,7 @@ class MenuContents: UIView {
     let stackView: UIStackView
     
     private let titleLabel = UILabel()
+    private let imageView = UIImageView()
     
     private let radius: CGFloat
     
@@ -50,12 +51,29 @@ class MenuContents: UIView {
         }
     }
     
-    var title: String? {
+    var title: MenuView.Title? {
         get {
-            return titleLabel.text
+            let title: MenuView.Title?
+            if let text = titleLabel.text {
+                title = .text(text)
+            } else if let image = imageView.image {
+                title = .image(image)
+            } else {
+                title = nil
+            }
+            
+            return title
         }
         set {
-            titleLabel.text = newValue
+            switch newValue {
+            case .text(let text)?:
+                titleLabel.text = text
+            case .image(let image)?:
+                imageView.image = image
+            case nil:
+                titleLabel.text = nil
+                imageView.image = nil
+            }
         }
     }
     
@@ -157,7 +175,7 @@ class MenuContents: UIView {
         }
     }
     
-    init(name: String, items: [MenuItem], theme: MenuTheme, maxHeight: CGFloat = 300, radius: CGFloat = 8.0) {
+    init(title: MenuView.Title, items: [MenuItem], theme: MenuTheme, maxHeight: CGFloat = 300, radius: CGFloat = 8.0) {
 
         let itemViews: [MenuViewType] = items.map {
             let item = $0.view
@@ -172,8 +190,6 @@ class MenuContents: UIView {
         self.radius = radius
         
         super.init(frame: .zero)
-        
-        titleLabel.text = name
         
         addSubview(shadowView)
         
@@ -193,6 +209,7 @@ class MenuContents: UIView {
         
         effectView.contentView.addSubview(tintView)
         effectView.contentView.addSubview(titleLabel)
+        effectView.contentView.addSubview(imageView)
         effectView.contentView.addSubview(scrollContainer)
         
         scrollContainer.addSubview(scrollView)
@@ -242,6 +259,10 @@ class MenuContents: UIView {
         }
         
         applyTheme(theme)
+        
+        defer {
+            self.title = title
+        }
     }
     
     private func computePath(withParentView view: UIView, alignment: MenuView.Alignment) -> UIBezierPath {
@@ -313,6 +334,13 @@ class MenuContents: UIView {
             make in
             
             make.center.equalTo(superview)
+        }
+        
+        imageView.snp.remakeConstraints { maker in
+            maker.center.equalTo(superview)
+            maker.left.right.equalTo(superview).inset(12)
+            maker.top.equalTo(superview).offset(8)
+            maker.bottom.equalTo(superview).offset(-12)
         }
         
         scrollView.scrollIndicatorInsets = UIEdgeInsets(top: radius + 6, left: 0, bottom: 6, right: 0)

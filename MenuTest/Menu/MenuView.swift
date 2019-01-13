@@ -11,19 +11,30 @@ import SnapKit
 
 //MARK: - MenuView
 
-public class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
+open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
+    public enum Title {
+        case text(String)
+        case image(UIImage)
+    }
     
     public static let menuWillPresent = Notification.Name("CodeaMenuWillPresent")
     
     private let titleLabel = UILabel()
+    private let imageView = UIImageView()
     private let gestureBarView = UIView()
     private let tintView = UIView()
     private let effectView = UIVisualEffectView(effect: UIBlurEffect(style: .light))
     private let feedback = UISelectionFeedbackGenerator()
     
-    public var title: String {
+    public var title: Title {
         didSet {
-            titleLabel.text = title
+            switch title {
+            case .text(let text):
+                titleLabel.text = text
+            case .image(let image):
+                imageView.image = image
+            }
+            
             contents?.title = title
         }
     }
@@ -53,17 +64,25 @@ public class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
         }
     }
     
-    public init(title: String, theme: MenuTheme, itemsSource: @escaping () -> [MenuItem]) {
+    public init(title: Title, theme: MenuTheme, itemsSource: @escaping () -> [MenuItem]) {
         self.itemsSource = itemsSource
         self.title = title
         self.theme = theme
         
         super.init(frame: .zero)
         
-        titleLabel.text = title
         titleLabel.textColor = theme.darkTintColor
         titleLabel.textAlignment = .center
         titleLabel.setContentHuggingPriority(.required, for: .horizontal)
+        
+        imageView.contentMode = .scaleAspectFit
+        
+        switch title {
+        case .text(let text):
+            titleLabel.text = text
+        case .image(let image):
+            imageView.image = image
+        }
         
         let clippingView = UIView()
         clippingView.clipsToBounds = true
@@ -88,6 +107,7 @@ public class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
         
         effectView.contentView.addSubview(tintView)
         effectView.contentView.addSubview(titleLabel)
+        effectView.contentView.addSubview(imageView)
         effectView.contentView.addSubview(gestureBarView)
         
         tintView.snp.makeConstraints {
@@ -101,6 +121,13 @@ public class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
             
             make.left.right.equalToSuperview().inset(12)
             make.centerY.equalToSuperview()
+        }
+        
+        imageView.snp.makeConstraints { maker in
+            maker.left.right.equalToSuperview().inset(12)
+            maker.top.equalToSuperview().offset(8)
+            maker.bottom.equalToSuperview().offset(-12)
+            maker.width.equalTo(imageView.snp.height)
         }
         
         gestureBarView.layer.cornerRadius = 1.0
@@ -217,7 +244,7 @@ public class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
     public func showContents() {
         NotificationCenter.default.post(name: MenuView.menuWillPresent, object: self)
         
-        let contents = MenuContents(name: title, items: itemsSource(), theme: theme)
+        let contents = MenuContents(title: title, items: itemsSource(), theme: theme)
         
         for view in contents.stackView.arrangedSubviews {
             if let view = view as? MenuItemView {
@@ -302,7 +329,7 @@ public class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
     
     //MARK: - Hit Testing
     
-    public override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+    open override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         guard let contents = contents else {
             return super.point(inside: point, with: event)
         }
@@ -316,7 +343,7 @@ public class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
         return contents.pointInsideMenuShape(contentsPoint)
     }
     
-    public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+    open override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         guard let contents = contents else {
             return super.hitTest(point, with: event)
         }
@@ -346,7 +373,7 @@ public class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
         contents?.applyTheme(theme)
     }
     
-    public override func tintColorDidChange() {
+    open override func tintColorDidChange() {
         titleLabel.textColor = tintColor
     }
 }
