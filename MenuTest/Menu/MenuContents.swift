@@ -338,7 +338,6 @@ class MenuContents: UIView {
         }
         
         imageView.snp.remakeConstraints { maker in
-            maker.center.equalTo(superview)
             maker.left.right.equalTo(superview).inset(12)
             maker.top.equalTo(superview).offset(8)
             maker.bottom.equalTo(superview).offset(-12)
