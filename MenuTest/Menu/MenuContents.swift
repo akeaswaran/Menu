@@ -11,7 +11,7 @@ import SnapKit
 
 extension UIScrollView {
     var maxContentOffset: CGPoint {
-        return CGPoint(x: contentSize.width - bounds.size.width, y: contentSize.height - bounds.size.height)
+        return CGPoint(x: contentSize.width - bounds.size.width, y: contentSize.height - bounds.size.height + contentInset.bottom)
     }
 }
 
@@ -36,6 +36,8 @@ class MenuContents: UIView {
     private let radius: CGFloat
     
     private var edgeScrollTimer: Timer?
+    
+    private var verticalAlignment: MenuView.VerticalAlignment
     
     private var menuItemViews: [MenuViewType] {
         get {
@@ -106,6 +108,8 @@ class MenuContents: UIView {
     }
     
     private func updateHighlightedPosition(_ point: CGPoint) {
+        let point = CGPoint(x: point.x, y: point.y < 0 ? point.y + scrollContainer.bounds.height : point.y)
+        
         menuItemViews.forEach {
             var view = $0
             
@@ -126,8 +130,9 @@ class MenuContents: UIView {
                     return
                 }
                 
-                let point = self.highlightedPosition ?? .zero
-                let offsetAmount: CGFloat = 2.0
+                let highlightedPosition = self.highlightedPosition ?? .zero
+                let point = CGPoint(x: highlightedPosition.x, y: highlightedPosition.y < 0 ? highlightedPosition.y + self.scrollContainer.bounds.height : highlightedPosition.y)
+                let offsetAmount: CGFloat = 2
                 
                 if self.pointIsInsideBottomEdgeScrollingBoundary(point) {
                     var offset = self.scrollView.contentOffset
@@ -175,7 +180,7 @@ class MenuContents: UIView {
         }
     }
     
-    init(title: MenuView.Title, items: [MenuItem], theme: MenuTheme, maxHeight: CGFloat = 300, radius: CGFloat = 8.0) {
+    init(title: MenuView.Title, items: [MenuItem], theme: MenuTheme, maxHeight: CGFloat = 300, radius: CGFloat = 8.0, verticalAlignment: MenuView.VerticalAlignment) {
 
         let itemViews: [MenuViewType] = items.map {
             let item = $0.view
@@ -189,6 +194,7 @@ class MenuContents: UIView {
         self.maxHeight = maxHeight
         self.items = items
         self.radius = radius
+        self.verticalAlignment = verticalAlignment
         
         super.init(frame: .zero)
         
@@ -266,55 +272,100 @@ class MenuContents: UIView {
         }
     }
     
-    private func computePath(withParentView view: UIView, alignment: MenuView.Alignment) -> UIBezierPath {
+    private func computePath(withParentView view: UIView,
+                             horizontalAlignment: MenuView.HorizontalAlignment,
+                             verticalAlignment: MenuView.VerticalAlignment) -> UIBezierPath {
         let localViewBounds: CGRect
-        let lowerRectCorners: UIRectCorner
+        let mainRectCorners: UIRectCorner
         
-        switch alignment {
-        case .center:
+        switch (horizontalAlignment, verticalAlignment) {
+        case (.center, .bottom):
             localViewBounds = view.bounds.offsetBy(dx: bounds.size.width/2.0 - view.bounds.size.width/2.0, dy: 0.0)
-            lowerRectCorners = .allCorners
-        case .right:
+            mainRectCorners = .allCorners
+        case (.right, .bottom):
             localViewBounds = view.bounds
-            lowerRectCorners = [.topRight, .bottomLeft, .bottomRight]
-        case .left:
+            mainRectCorners = [.topRight, .bottomLeft, .bottomRight]
+        case (.left, .bottom):
             localViewBounds = view.bounds.offsetBy(dx: bounds.size.width - view.bounds.size.width, dy: 0.0)
-            lowerRectCorners = [.topLeft, .bottomLeft, .bottomRight]
+            mainRectCorners = [.topLeft, .bottomLeft, .bottomRight]
+        case (.center, .top):
+            localViewBounds = view.bounds.offsetBy(dx: bounds.size.width/2.0 - view.bounds.size.width/2.0, dy: bounds.height - view.bounds.height)
+            mainRectCorners = .allCorners
+        case (.right, .top):
+            localViewBounds = view.bounds.offsetBy(dx: 0, dy: bounds.height - view.bounds.height)
+            mainRectCorners = [.bottomRight, .topLeft, .topRight]
+        case (.left, .top):
+            localViewBounds = view.bounds.offsetBy(dx: bounds.size.width - view.bounds.size.width, dy: bounds.height - view.bounds.height)
+            mainRectCorners = [.bottomLeft, .topLeft, .topRight]
         }
         
-        let topPath = UIBezierPath(roundedRect: localViewBounds, byRoundingCorners: [.topLeft, .topRight], cornerRadii: CGSize(width: radius, height: radius))
+        let parentPathRectCorners: UIRectCorner
+        switch verticalAlignment {
+        case .bottom:
+            parentPathRectCorners = [.topLeft, .topRight]
+        case .top:
+            parentPathRectCorners = [.bottomLeft, .bottomRight]
+        }
+        
+        let parentPath = UIBezierPath(roundedRect: localViewBounds, byRoundingCorners: parentPathRectCorners, cornerRadii: CGSize(width: radius, height: radius))
         
         let midPath = UIBezierPath()
         
-        switch alignment {
-        case .center:
+        switch (horizontalAlignment, verticalAlignment) {
+        case (.center, .bottom):
             midPath.move(to: CGPoint(x: localViewBounds.minX, y: localViewBounds.maxY))
             midPath.addLine(to: CGPoint(x: localViewBounds.maxX, y: localViewBounds.maxY))
             midPath.addArc(withCenter: CGPoint(x: localViewBounds.maxX + radius, y: localViewBounds.maxY), radius: radius, startAngle: .pi, endAngle: .pi/2.0, clockwise: false)
             midPath.addLine(to: CGPoint(x: localViewBounds.minX - radius, y: localViewBounds.maxY + radius))
             midPath.addArc(withCenter: CGPoint(x: localViewBounds.minX - radius, y: localViewBounds.maxY), radius: radius, startAngle: .pi/2.0, endAngle: 0.0, clockwise: false)
-        case .right:
+        case (.right, .bottom):
             midPath.move(to: CGPoint(x: localViewBounds.minX, y: localViewBounds.maxY))
             midPath.addLine(to: CGPoint(x: localViewBounds.maxX, y: localViewBounds.maxY))
             midPath.addArc(withCenter: CGPoint(x: localViewBounds.maxX + radius, y: localViewBounds.maxY), radius: radius, startAngle: .pi, endAngle: .pi/2.0, clockwise: false)
             midPath.addLine(to: CGPoint(x: localViewBounds.minX, y: localViewBounds.maxY + radius))
-        case .left:
+        case (.left, .bottom):
             midPath.move(to: CGPoint(x: localViewBounds.minX, y: localViewBounds.maxY))
             midPath.addLine(to: CGPoint(x: localViewBounds.maxX, y: localViewBounds.maxY))
             midPath.addLine(to: CGPoint(x: localViewBounds.maxX, y: localViewBounds.maxY + radius))
             midPath.addLine(to: CGPoint(x: localViewBounds.minX - radius, y: localViewBounds.maxY + radius))
             midPath.addArc(withCenter: CGPoint(x: localViewBounds.minX - radius, y: localViewBounds.maxY), radius: radius, startAngle: .pi/2.0, endAngle: 0.0, clockwise: false)
+        case (.center, .top):
+            midPath.move(to: CGPoint(x: localViewBounds.minX, y: localViewBounds.minY))
+            midPath.addLine(to: CGPoint(x: localViewBounds.maxX, y: localViewBounds.minY))
+            midPath.addArc(withCenter: CGPoint(x: localViewBounds.maxX + radius, y: localViewBounds.minY), radius: radius, startAngle: .pi, endAngle: .pi*1.5, clockwise: true)
+            midPath.addLine(to: CGPoint(x: localViewBounds.minX + radius, y: localViewBounds.minY - radius))
+            midPath.addArc(withCenter: CGPoint(x: localViewBounds.minX - radius, y: localViewBounds.minY), radius: radius, startAngle: .pi*1.5, endAngle: 0, clockwise: true)
+        case (.right, .top):
+            midPath.move(to: CGPoint(x: localViewBounds.minX, y: localViewBounds.minY))
+            midPath.addLine(to: CGPoint(x: localViewBounds.maxX, y: localViewBounds.minY))
+            midPath.addArc(withCenter: CGPoint(x: localViewBounds.maxX + radius, y: localViewBounds.minY), radius: radius, startAngle: .pi, endAngle: .pi*1.5, clockwise: true)
+            midPath.addLine(to: CGPoint(x: localViewBounds.minX, y: localViewBounds.minY - radius))
+        case (.left, .top):
+            midPath.move(to: CGPoint(x: localViewBounds.minX, y: localViewBounds.minY))
+            midPath.addLine(to: CGPoint(x: localViewBounds.maxX, y: localViewBounds.minY))
+            midPath.addLine(to: CGPoint(x: localViewBounds.maxX, y: localViewBounds.minY - radius))
+            midPath.addLine(to: CGPoint(x: localViewBounds.minX - radius, y: localViewBounds.minY - radius))
+            midPath.addArc(withCenter: CGPoint(x: localViewBounds.minX - radius, y: localViewBounds.minY), radius: radius, startAngle: .pi*1.5, endAngle: 0.0, clockwise: true)
         }
         
         midPath.close()
         
-        let yOffset = localViewBounds.maxY + radius
-        let bottomPath = UIBezierPath(roundedRect: CGRect(x: 0, y: yOffset, width: bounds.size.width, height: bounds.size.height - yOffset), byRoundingCorners: lowerRectCorners, cornerRadii: CGSize(width: radius, height: radius))
+        let yOffset: CGFloat
+        let localViewHeight: CGFloat
+        switch verticalAlignment {
+        case .bottom:
+            yOffset = localViewBounds.maxY + radius
+            localViewHeight = yOffset
+        case .top:
+            yOffset = 0
+            localViewHeight = localViewBounds.height + radius
+        }
+        let mainPath = UIBezierPath(roundedRect: CGRect(x: 0, y: yOffset, width: bounds.size.width, height: bounds.size.height - localViewHeight), byRoundingCorners: mainRectCorners, cornerRadii: CGSize(width: radius, height: radius))
         
-        topPath.append(midPath)
-        topPath.append(bottomPath)
+        parentPath.append(midPath)
+        parentPath.append(mainPath)
         
-        return topPath
+        return parentPath
     }
     
     func pointInsideMenuShape(_ point: CGPoint) -> Bool {
@@ -339,19 +390,41 @@ class MenuContents: UIView {
         
         imageView.snp.remakeConstraints { maker in
             maker.left.right.equalTo(superview).inset(12)
-            maker.top.equalTo(superview).offset(8)
-            maker.bottom.equalTo(superview).offset(-12)
+            switch verticalAlignment {
+            case .bottom:
+                maker.top.equalTo(superview).offset(8)
+                maker.bottom.equalTo(superview).offset(-12)
+            case .top:
+                maker.top.equalTo(superview).offset(12)
+                maker.bottom.equalTo(superview).offset(-8)
+            }
         }
         
-        scrollView.scrollIndicatorInsets = UIEdgeInsets(top: radius + 6, left: 0, bottom: 6, right: 0)
-        scrollView.contentInset = UIEdgeInsets(top: radius + 6, left: 0, bottom: 6, right: 0)
+        let scrollInset: UIEdgeInsets
+        switch verticalAlignment {
+        case .bottom:
+            scrollInset = UIEdgeInsets(top: radius + 6, left: 0, bottom: 6, right: 0)
+        case .top:
+            scrollInset = UIEdgeInsets(top: radius + 6, left: 0, bottom: radius + 6, right: 0)
+        }
+        
+        scrollView.scrollIndicatorInsets = scrollInset
+        scrollView.contentInset = scrollInset
         
         let insetAdjustment = scrollView.contentInset.top + scrollView.contentInset.bottom
         
         scrollContainer.snp.remakeConstraints {
             make in
-            make.left.bottom.right.equalToSuperview()
-            make.top.equalTo(superview.snp.bottom)
+            
+            make.left.right.equalToSuperview()
+            switch verticalAlignment {
+            case .bottom:
+                make.bottom.equalToSuperview()
+                make.top.equalTo(superview.snp.bottom)
+            case .top:
+                make.top.equalToSuperview()
+                make.bottom.equalTo(superview.snp.top)
+            }
         }
         
         scrollView.snp.remakeConstraints {
@@ -382,12 +455,12 @@ class MenuContents: UIView {
         }
     }
     
-    func generateMaskAndShadow(alignment: MenuView.Alignment) {
+    func generateMaskAndShadow(horizontalAlignment: MenuView.HorizontalAlignment, verticalAlignment: MenuView.VerticalAlignment) {
         guard let view = superview else {
             return
         }
         
-        let path = computePath(withParentView: view, alignment: alignment)
+        let path = computePath(withParentView: view, horizontalAlignment: horizontalAlignment, verticalAlignment: verticalAlignment)
         
         //Mask effect view
         let shapeMask = CAShapeLayer()
@@ -417,6 +490,10 @@ class MenuContents: UIView {
         imageMask.contents = shadowMask.cgImage
         
         sublayer.mask = imageMask
+        
+        if verticalAlignment == .top {
+            scrollView.setContentOffset(scrollView.maxContentOffset, animated: false)
+        }
     }
     
     required init?(coder aDecoder: NSCoder) {

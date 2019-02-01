@@ -48,19 +48,26 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
     
     public var itemsSource: (() -> [MenuItem])?
     
-    public enum Alignment {
+    public enum HorizontalAlignment {
         case left
         case center
         case right
     }
     
-    public var contentAlignment = Alignment.right {
+    public enum VerticalAlignment {
+        case bottom
+        case top
+    }
+    
+    public var horizontalContentAlignment = HorizontalAlignment.right {
         didSet {
-            if contentAlignment == .center {
-                titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
-            } else {
-                titleLabel.setContentHuggingPriority(.required, for: .horizontal)
-            }
+            titleLabel.setContentHuggingPriority(.required, for: .horizontal)
+        }
+    }
+    
+    public var verticalContentAlignment = VerticalAlignment.bottom {
+        didSet {
+            relayoutGestureBar()
         }
     }
     
@@ -123,11 +130,17 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
             make.centerY.equalToSuperview()
         }
         
-        imageView.snp.makeConstraints { maker in
+        imageView.snp.remakeConstraints { maker in
             maker.left.right.equalToSuperview().inset(12)
-            maker.top.equalToSuperview().offset(8)
-            maker.bottom.equalToSuperview().offset(-12)
-            maker.width.equalTo(imageView.snp.height)
+            maker.width.greaterThanOrEqualTo(imageView.snp.height)
+            switch verticalContentAlignment {
+            case .bottom:
+                maker.top.equalToSuperview().offset(8)
+                maker.bottom.equalToSuperview().offset(-12)
+            case .top:
+                maker.top.equalToSuperview().offset(12)
+                maker.bottom.equalToSuperview().offset(-8)
+            }
         }
         
         gestureBarView.layer.cornerRadius = 1.0
@@ -137,7 +150,12 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
             make.centerX.equalToSuperview()
             make.height.equalTo(2)
             make.width.equalTo(20)
-            make.bottom.equalToSuperview().inset(3)
+            switch verticalContentAlignment {
+            case .bottom:
+                make.bottom.equalToSuperview().inset(3)
+            case .top:
+                make.top.equalToSuperview().inset(3)
+            }
         }
         
         longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressGesture(_:)))
@@ -244,7 +262,7 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
     public func showContents() {
         NotificationCenter.default.post(name: MenuView.menuWillPresent, object: self)
         
-        let contents = MenuContents(title: title, items: itemsSource?() ?? [], theme: theme)
+        let contents = MenuContents(title: title, items: itemsSource?() ?? [], theme: theme, verticalAlignment: verticalContentAlignment)
         
         for view in contents.stackView.arrangedSubviews {
             if let view = view as? MenuItemView {
@@ -262,13 +280,20 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
         contents.snp.makeConstraints {
             make in
         
-            switch contentAlignment {
+            switch horizontalContentAlignment {
             case .left:
-                make.top.right.equalToSuperview()
+                make.right.equalToSuperview()
             case .right:
-                make.top.left.equalToSuperview()
+                make.left.equalToSuperview()
             case .center:
-                make.top.centerX.equalToSuperview()
+                make.centerX.equalToSuperview()
+            }
+            
+            switch verticalContentAlignment {
+            case .bottom:
+                make.top.equalToSuperview()
+            case .top:
+                make.bottom.equalToSuperview()
             }
         }
         
@@ -281,7 +306,7 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
         setNeedsLayout()
         layoutIfNeeded()
         
-        contents.generateMaskAndShadow(alignment: contentAlignment)
+        contents.generateMaskAndShadow(horizontalAlignment: horizontalContentAlignment, verticalAlignment: verticalContentAlignment)
         contents.focusInitialViewIfNecessary()
         
         feedback.prepare()
@@ -318,12 +343,41 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
     
     //MARK: - Relayout
     
+    private func relayoutGestureBar() {
+        gestureBarView.snp.remakeConstraints {
+            make in
+            
+            make.centerX.equalToSuperview()
+            make.height.equalTo(2)
+            make.width.equalTo(20)
+            switch verticalContentAlignment {
+            case .bottom:
+                make.bottom.equalToSuperview().inset(3)
+            case .top:
+                make.top.equalToSuperview().inset(3)
+            }
+        }
+        
+        imageView.snp.remakeConstraints { maker in
+            maker.left.right.equalToSuperview().inset(12)
+            maker.width.greaterThanOrEqualTo(imageView.snp.height)
+            switch verticalContentAlignment {
+            case .bottom:
+                maker.top.equalToSuperview().offset(8)
+                maker.bottom.equalToSuperview().offset(-12)
+            case .top:
+                maker.top.equalToSuperview().offset(12)
+                maker.bottom.equalToSuperview().offset(-8)
+            }
+        }
+    }
+    
     private func relayoutContents() {
         if let contents = contents {
             setNeedsLayout()
             layoutIfNeeded()
             
-            contents.generateMaskAndShadow(alignment: contentAlignment)
+            contents.generateMaskAndShadow(horizontalAlignment: horizontalContentAlignment, verticalAlignment: verticalContentAlignment)
         }
     }
     

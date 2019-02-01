@@ -15,18 +15,34 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let menu = MenuView(title: "Menu", theme: LightMenuTheme()) { [weak self] () -> [MenuItem] in
+        let menu = MenuView(title: .text("Hello"), theme: LightMenuTheme())
+        menu.itemsSource = { () -> [MenuItem] in
             return [
-                ShortcutMenuItem(name: "Undo", shortcut: (.command, "Z"), action: {
-                    [weak self] in
-                    
-                    let alert = UIAlertController(title: "Undo Action", message: "You selected undo", preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-                    
-                    self?.present(alert, animated: true, completion: nil)
+                ShortcutMenuItem(name: "Right Bottom", shortcut: (.command, "Z"), action: {
+                    menu.horizontalContentAlignment = .right
+                    menu.verticalContentAlignment = .bottom
                 }),
                 
-                ShortcutMenuItem(name: "Redo", shortcut: ([.command, .shift], "Z"), action: {}),
+                ShortcutMenuItem(name: "Center Bottom", shortcut: (.command, "Z"), action: {
+                    menu.horizontalContentAlignment = .center
+                    menu.verticalContentAlignment = .bottom
+                }),
+                ShortcutMenuItem(name: "Left Bottom", shortcut: (.command, "Z"), action: {
+                    menu.horizontalContentAlignment = .left
+                    menu.verticalContentAlignment = .bottom
+                }),
+                ShortcutMenuItem(name: "Right Top", shortcut: (.command, "Z"), action: {
+                    menu.horizontalContentAlignment = .right
+                    menu.verticalContentAlignment = .top
+                }),
+                ShortcutMenuItem(name: "Center Top", shortcut: (.command, "Z"), action: {
+                    menu.horizontalContentAlignment = .center
+                    menu.verticalContentAlignment = .top
+                }),
+                ShortcutMenuItem(name: "Left Top", shortcut: (.command, "Z"), action: {
+                    menu.horizontalContentAlignment = .left
+                    menu.verticalContentAlignment = .top
+                }),
                 
                 SeparatorMenuItem(),
                 
@@ -36,8 +52,32 @@ class ViewController: UIViewController {
                 SeparatorMenuItem(),
                 
                 ShortcutMenuItem(name: "Help", shortcut: (.command, "?"), action: {}),
-            ]
+                SeparatorMenuItem(),
+                
+                ShortcutMenuItem(name: "Help", shortcut: (.command, "?"), action: {}),
+                SeparatorMenuItem(),
+                
+                ShortcutMenuItem(name: "Help", shortcut: (.command, "?"), action: {}),
+                SeparatorMenuItem(),
+                
+                ShortcutMenuItem(name: "Help", shortcut: (.command, "?"), action: {}),
+                SeparatorMenuItem(),
+                
+                ShortcutMenuItem(name: "Help", shortcut: (.command, "?"), action: {}),
+                SeparatorMenuItem(),
+                
+                ShortcutMenuItem(name: "Help", shortcut: (.command, "?"), action: {}),
+                SeparatorMenuItem(),
+                
+                ShortcutMenuItem(name: "Help", shortcut: (.command, "?"), action: {}),
+                SeparatorMenuItem(),
+                
+                ShortcutMenuItem(name: "SFDSa", shortcut: (.command, "?"), action: {}),
+                ]
         }
+        
+        menu.verticalContentAlignment = .top
+        menu.horizontalContentAlignment = .center
         
         view.addSubview(menu)
         
