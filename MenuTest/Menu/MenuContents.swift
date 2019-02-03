@@ -170,6 +170,10 @@ class MenuContents: UIView {
             
             let point = convert(point, to: view)
             if view.point(inside: point, with: nil) {
+                var view = view
+                view.highlighted = true
+                view.highlightPosition = point
+                
                 view.startSelectionAnimation {
                     [weak self] in
                     if let self = self {
