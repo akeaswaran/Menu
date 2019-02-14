@@ -426,8 +426,4 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
         
         contents?.applyTheme(theme)
     }
-    
-    open override func tintColorDidChange() {
-        titleLabel.textColor = tintColor
-    }
 }
