@@ -48,6 +48,8 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
     
     public var itemsSource: (() -> [MenuItem])?
     
+    public var maxHeight: CGFloat
+    
     public enum HorizontalAlignment {
         case left
         case center
@@ -71,10 +73,11 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
         }
     }
     
-    public init(title: Title, theme: MenuTheme, itemsSource: (() -> [MenuItem])? = nil) {
+    public init(title: Title, theme: MenuTheme, maxHeight: CGFloat = 300, itemsSource: (() -> [MenuItem])? = nil) {
         self.itemsSource = itemsSource
         self.title = title
         self.theme = theme
+        self.maxHeight = maxHeight
         
         super.init(frame: .zero)
         
@@ -262,7 +265,7 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
     public func showContents() {
         NotificationCenter.default.post(name: MenuView.menuWillPresent, object: self)
         
-        let contents = MenuContents(title: title, items: itemsSource?() ?? [], theme: theme, verticalAlignment: verticalContentAlignment)
+        let contents = MenuContents(title: title, items: itemsSource?() ?? [], theme: theme, maxHeight: maxHeight, verticalAlignment: verticalContentAlignment)
         
         for view in contents.stackView.arrangedSubviews {
             if let view = view as? MenuItemView {
