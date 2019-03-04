@@ -40,6 +40,7 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
     }
     
     private var menuPresentationObserver: Any!
+    private var orientationObserver: Any!
     
     private var contents: MenuContents?
     private var theme: MenuTheme
@@ -179,10 +180,19 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
                 self?.hideContents(animated: false)
             }
         }
+        
+        orientationObserver = NotificationCenter.default.addObserver(forName: UIApplication.didChangeStatusBarOrientationNotification,
+                                                                     object: nil,
+                                                                     queue: nil, using: {
+            [weak self] _ in
+                                                                        
+            self?.hideContents(animated: true)
+        })
     }
     
     deinit {
         NotificationCenter.default.removeObserver(menuPresentationObserver)
+        NotificationCenter.default.removeObserver(orientationObserver)
     }
     
     //MARK: - Required Init
