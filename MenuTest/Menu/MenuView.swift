@@ -11,6 +11,14 @@ import SnapKit
 
 //MARK: - MenuView
 
+protocol FeedbackGenerator {
+    func prepare()
+    func selectionChanged()
+}
+
+@available(iOS 10.0, *)
+extension UISelectionFeedbackGenerator: FeedbackGenerator {}
+
 open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
     public enum Title {
         case text(String)
@@ -24,7 +32,16 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
     private let gestureBarView = UIView()
     private let tintView = UIView()
     private let effectView = UIVisualEffectView(effect: UIBlurEffect(style: .light))
-    private let feedback = UISelectionFeedbackGenerator()
+    private let feedback: FeedbackGenerator? = {
+        let feedback: FeedbackGenerator?
+        if #available(iOS 10.0, *) {
+            feedback = UISelectionFeedbackGenerator()
+        } else {
+            feedback = nil
+        }
+        
+        return feedback
+    }()
     
     public var title: Title {
         didSet {
@@ -322,11 +339,11 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
         contents.generateMaskAndShadow(horizontalAlignment: horizontalContentAlignment, verticalAlignment: verticalContentAlignment)
         contents.focusInitialViewIfNecessary()
         
-        feedback.prepare()
+        feedback?.prepare()
         contents.highlightChanged = {
             [weak self] in
             
-            self?.feedback.selectionChanged()
+            self?.feedback?.selectionChanged()
         }
     }
     

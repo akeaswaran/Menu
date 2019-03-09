@@ -123,7 +123,7 @@ class MenuContents: UIView {
         let pointInsideBoundary = pointIsInsideTopEdgeScrollingBoundary(point) || pointIsInsideBottomEdgeScrollingBoundary(point)
         
         if pointInsideBoundary && edgeScrollTimer == nil && isInteractiveDragActive {
-            edgeScrollTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true, block: {
+            edgeScrollTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true, timerBlock: {
                 [weak self] _ in
                 
                 guard let self = self else {
@@ -479,14 +479,26 @@ class MenuContents: UIView {
         sublayer.shadowPath = path.cgPath
         sublayer.shadowOffset = CGSize(width: 0, height: 6)
         
-        let imageRenderer = UIGraphicsImageRenderer(size: shadowView.bounds.size)
+        let shadowMask: UIImage
         
-        let shadowMask = imageRenderer.image {
-            context in
+        if #available(iOS 10, *) {
+            let imageRenderer = UIGraphicsImageRenderer(size: shadowView.bounds.size)
             
+            shadowMask = imageRenderer.image {
+                context in
+                
+                UIColor.white.setFill()
+                context.fill(shadowView.bounds)
+                path.fill(with: .clear, alpha: 1.0)
+            }
+        } else {
+            UIGraphicsBeginImageContextWithOptions(shadowView.bounds.size, false, 1)
             UIColor.white.setFill()
-            context.fill(shadowView.bounds)
+            UIBezierPath(rect: shadowView.bounds).fill()
             path.fill(with: .clear, alpha: 1.0)
+            // Safe to force-unwrap
+            shadowMask = UIGraphicsGetImageFromCurrentImageContext()!
+            UIGraphicsEndImageContext()
         }
         
         let imageMask = CALayer()
