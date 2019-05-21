@@ -1,9 +1,9 @@
 {
   "name": "Menu",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "summary": "The iOS Menu.",
   "description": "The iOS Menu.",
-  "homepage": "https://github.com/TwoLivesLeft/Menu",
+  "homepage": "https://github.com/akeaswaran/Menu",
   "screenshots": [
     "https://codea.io/blog/wp-content/uploads/2019/01/clipboard-3.png",
     "https://codea.io/blog/wp-content/uploads/2019/01/Image-2-1024x654.png"

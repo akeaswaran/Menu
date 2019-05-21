@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |spec|
   spec.name         = "Menu"
-  spec.version      = "0.0.1"
+  spec.version      = "0.0.3"
   spec.summary      = "The iOS Menu."
 
   # This description is used to generate tags and improve search results.
@@ -21,17 +21,16 @@ Pod::Spec.new do |spec|
   DESC
 
   spec.homepage     = "https://github.com/TwoLivesLeft/Menu"
-  spec.screenshots  = "https://codea.io/blog/wp-content/uploads/2019/01/clipboard-3.png", "https://codea.io/blog/wp-content/uploads/2019/01/Image-2-1024x654.png"
+  # spec.screenshots  = "https://codea.io/blog/wp-content/uploads/2019/01/clipboard-3.png", "https://codea.io/blog/wp-content/uploads/2019/01/Image-2-1024x654.png"
 
   spec.license      = { :type => "MIT", :file => "LICENSE" }
 
   spec.author             = { "Simeon Saëns" => "simeon@twolivesleft.com" }
   spec.social_media_url   = "https://twitter.com/twolivesleft"
 
-  spec.platform     = :ios, "9.0"
-  # spec.ios.deployment_target = "10.0"
+  spec.platform     = :ios, "10.0"
 
-  spec.source       = { :git => "https://github.com/TwoLivesLeft/Menu.git", :tag => "#{spec.version}" }
+  spec.source       = { :git => "https://github.com/akeaswaran/Menu.git", :tag => "#{spec.version}" }
   spec.source_files  = "MenuTest/Menu/*.swift", "MenuTest/Util/*.swift"
   spec.swift_version = '4.2'
 
