@@ -28,6 +28,8 @@ public protocol MenuTheme {
     var shadowRadius: CGFloat { get }
     var separatorColor: UIColor { get }
     
+    var shortcutTextColor: UIColor { get }
+    var highlightedShortcutTextColor: UIColor { get }
 }
 
 public struct LightMenuTheme: MenuTheme {
@@ -45,6 +47,8 @@ public struct LightMenuTheme: MenuTheme {
     public let shadowOpacity: Float = 0.3
     public let shadowRadius: CGFloat = 7.0
     public let separatorColor = UIColor(white: 0, alpha: 0.1)
+    public let shortcutTextColor: UIColor = UIColor(white: 0.1, alpha: 0.65)
+    public let highlightedShortcutTextColor = UIColor(white: 1.0, alpha: 0.65)
     
     public init() {}
 }
