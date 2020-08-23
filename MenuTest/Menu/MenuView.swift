@@ -208,8 +208,13 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
     }
 
     deinit {
-        NotificationCenter.default.removeObserver(menuPresentationObserver)
-        NotificationCenter.default.removeObserver(orientationObserver)
+        if (menuPresentationObserver != nil) {
+            NotificationCenter.default.removeObserver(menuPresentationObserver!)
+        }
+        
+        if (orientationObserver != nil) {
+            NotificationCenter.default.removeObserver(orientationObserver!)
+        }
     }
 
     //MARK: - Required Init
