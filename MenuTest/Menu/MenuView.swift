@@ -108,6 +108,7 @@ open class MenuView: UIView, MenuThemeable, UIGestureRecognizerDelegate {
         switch title {
         case .text(let text):
             titleLabel.text = text
+            self.accessibilityLabel = text
         case .image(let image):
             imageView.image = image
         }

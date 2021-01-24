@@ -126,6 +126,7 @@ public class ShortcutMenuItemView: UIView, MenuItemView, MenuThemeable {
         nameLabel.text = item.name
         
         addSubview(nameLabel)
+        self.accessibilityLabel = item.name
         
         nameLabel.textColor = .black
         
